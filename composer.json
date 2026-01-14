@@ -1,10 +1,11 @@
 {
-    "name": "coinbase/coinbase-commerce-oscommerce",
-    "description": "Coinbase Commerce plugin for OsCommerce",
+    "name": "coinbase/coinbase-commerce-whmcs",
+    "description": "Coinbase Business Payment Link plugin for WHMCS",
     "type": "composer-plugin",
     "license": "Apache-2.0",
     "require": {
-        "coinbase/coinbase-commerce": "^1.0.0"
+        "firebase/php-jwt": "^7.0",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "config": {
         "vendor-dir": "modules/gateways/Coinbase/vendor"
