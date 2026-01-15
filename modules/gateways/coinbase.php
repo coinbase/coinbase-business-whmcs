@@ -43,7 +43,7 @@ function coinbase_config()
     return array(
         'FriendlyName' => array(
             'Type' => 'System',
-            'Value' => 'Coinbase Business <a href="https://docs.cdp.coinbase.com/coinbase-business/payment-link-apis/overview" target="_blank" rel="noopener">(Learn more)</a>'
+            'Value' => 'Coinbase Business <a href="https://www.coinbase.com/business" target="_blank" rel="noopener">(Learn more)</a>'
         ),
         'cdpKeyName' => array(
             'FriendlyName' => 'CDP API Key Name',
