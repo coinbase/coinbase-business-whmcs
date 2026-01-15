@@ -84,49 +84,13 @@ function coinbase_link($params)
         die('Missing or invalid $params data.');
     }
 
-    // Get invoice description from first line item
-    $description = '';
-    try {
-        $description = Capsule::table('tblinvoiceitems')
-            ->where("invoiceid", "=", $params['invoiceid'])
-            ->value('description');
-        // Truncate to fit API limit (500 chars, but keep it reasonable)
-        $description = (strlen($description) > 200) ? substr($description, 0, 197) . '...' : $description;
-    } catch (Exception $e) {
-        $description = $params['description'];
-    }
+    // Build redirect URL - payment link is created only when user clicks the button
+    $redirectUrl = $params['systemurl'] . 'modules/gateways/Coinbase/redirect.php';
 
-    try {
-        $client = new PaymentLinkClient(
-            $params['cdpKeyName'],
-            $params['cdpPrivateKey']
-        );
+    $form = '<form action="' . htmlspecialchars($redirectUrl) . '" method="POST">';
+    $form .= '<input type="hidden" name="invoice_id" value="' . (int) $params['invoiceid'] . '" />';
+    $form .= '<input type="submit" value="' . htmlspecialchars($params['langpaynow']) . '" />';
+    $form .= '</form>';
 
-        $paymentLinkData = [
-            'amount' => $params['amount'],
-            'description' => empty($description) ? $params['description'] : $description,
-            'metadata' => [
-                METADATA_SOURCE_PARAM => METADATA_SOURCE_VALUE,
-                METADATA_INVOICE_PARAM => (string) $params['invoiceid'],
-                METADATA_CLIENT_PARAM => (string) $params['clientdetails']['userid'],
-                'firstName' => $params['clientdetails']['firstname'] ?? null,
-                'lastName' => $params['clientdetails']['lastname'] ?? null,
-                'email' => $params['clientdetails']['email'] ?? null,
-            ],
-            'successUrl' => $params['returnurl'] . "&paymentsuccess=true",
-            'failUrl' => $params['returnurl'] . "&paymentfailed=true",
-        ];
-
-        $response = $client->createPaymentLink($paymentLinkData);
-
-        $form = '<form action="' . htmlspecialchars($response->url) . '" method="GET">';
-        $form .= '<input type="submit" value="' . htmlspecialchars($params['langpaynow']) . '" />';
-        $form .= '</form>';
-
-        return $form;
-
-    } catch (Exception $e) {
-        logTransaction('coinbase', ['error' => $e->getMessage()], 'Payment Link Creation Failed');
-        return '<p style="color: red;">Unable to process payment at this time. Please try again later or contact support.</p>';
-    }
+    return $form;
 }
