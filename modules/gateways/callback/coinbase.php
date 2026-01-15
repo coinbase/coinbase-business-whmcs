@@ -64,6 +64,14 @@ class Webhook
      */
     public function process()
     {
+        // Return friendly response for non-webhook requests (e.g., health checks, browser visits)
+        $headers = array_change_key_case(getallheaders());
+        if (!isset($headers[SIGNATURE_HEADER])) {
+            http_response_code(200);
+            echo json_encode(['status' => 'ok', 'message' => 'Coinbase webhook endpoint ready']);
+            return;
+        }
+
         $payload = $this->getValidatedPayload();
 
         // Extract event data
