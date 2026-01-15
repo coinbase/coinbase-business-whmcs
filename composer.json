@@ -4,10 +4,14 @@
     "type": "composer-plugin",
     "license": "Apache-2.0",
     "require": {
-        "firebase/php-jwt": "^7.0",
+        "php": ">=7.4",
+        "firebase/php-jwt": "^6.10",
         "guzzlehttp/guzzle": "^7.0"
     },
     "config": {
-        "vendor-dir": "modules/gateways/Coinbase/vendor"
+        "vendor-dir": "modules/gateways/Coinbase/vendor",
+        "platform": {
+            "php": "7.4.33"
+        }
     }
 }
