@@ -54,9 +54,10 @@ class Webhook
         die();
     }
 
-    private function log($message)
+    private function log($message, $payload = null)
     {
-        logTransaction($this->gatewayModuleName, $_POST, $message);
+        $data = $payload ? (array) $payload : [];
+        logTransaction($this->gatewayModuleName, $data, $message);
     }
 
     /**
@@ -102,15 +103,15 @@ class Webhook
                 break;
 
             case EVENT_PAYMENT_FAILED:
-                $this->log(sprintf('Payment failed for invoice %s', $orderId));
+                $this->log(sprintf('Payment failed for invoice %s', $orderId), $payload);
                 break;
 
             case EVENT_PAYMENT_EXPIRED:
-                $this->log(sprintf('Payment expired for invoice %s', $orderId));
+                $this->log(sprintf('Payment expired for invoice %s', $orderId), $payload);
                 break;
 
             default:
-                $this->log(sprintf('Unknown event type: %s', $eventType));
+                $this->log(sprintf('Unknown event type: %s', $eventType), $payload);
         }
 
         // Return 200 OK to acknowledge receipt
@@ -124,15 +125,14 @@ class Webhook
     private function handlePaymentSuccess($orderId, $payload)
     {
         // Extract transaction details from payload
-        $paymentLinkId = $payload->id ?? null;
+        $paymentUrl = $payload->url ?? '';
+        $transactionId = basename($paymentUrl);
         $settlement = $payload->settlement ?? new stdClass();
 
-        // Use netAmount (after fees) or fall back to total amount
-        $amount = $settlement->netAmount ?? $payload->amount ?? '0';
+        // Use totalAmount (gross) with feeAmount so WHMCS correctly records net payment
+        // WHMCS deducts fee from amount: net credited = totalAmount - feeAmount
+        $amount = $settlement->totalAmount ?? $payload->amount ?? '0';
         $fee = $settlement->feeAmount ?? '0';
-
-        // Use payment link ID as transaction ID
-        $transactionId = $paymentLinkId;
 
         if (!$transactionId) {
             $this->failProcess('No transaction ID found in payload');
@@ -150,7 +150,7 @@ class Webhook
             $this->gatewayModuleName
         );
 
-        $this->log(sprintf('Payment successful for invoice %s. Transaction: %s, Amount: %s', $orderId, $transactionId, $amount));
+        $this->log(sprintf('Payment successful for invoice %s. Transaction: %s, Amount: %s', $orderId, $transactionId, $amount), $payload);
     }
 
     /**
@@ -182,7 +182,9 @@ class Webhook
     /**
      * Verify X-Hook0-Signature header
      *
-     * Format: t=timestamp;h=headers;v1=signature
+     * Format: t=timestamp,v0=signature,h=headers,v1=signature_with_headers
+     * v0 = HMAC-SHA256(timestamp.payload)
+     * v1 = HMAC-SHA256(timestamp.headers.payload)
      *
      * @param string $payload Raw request body
      * @param string $signatureHeader Header value
@@ -191,9 +193,9 @@ class Webhook
      */
     private function verifySignature(string $payload, string $signatureHeader, string $secret): bool
     {
-        // Parse the signature header
+        // Parse the signature header (format: t=timestamp,v0=sig,h=headers,v1=sig)
         $parts = [];
-        foreach (explode(';', $signatureHeader) as $part) {
+        foreach (explode(',', $signatureHeader) as $part) {
             $split = explode('=', $part, 2);
             if (count($split) === 2) {
                 $parts[$split[0]] = $split[1];
@@ -201,7 +203,7 @@ class Webhook
         }
 
         $timestamp = $parts['t'] ?? null;
-        $signature = $parts['v1'] ?? null;
+        $signature = $parts['v0'] ?? null;
 
         if (!$timestamp || !$signature) {
             return false;
