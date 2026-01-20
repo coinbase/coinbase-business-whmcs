@@ -1,7 +1,3 @@
 secure:
   required_reviews: 1
-  required_mfa: true
-  branches:
-    - name: master
-  allows_soft_reviews: true
-  codeowners_enabled: true
+  upstream_repository: coinbase/coinbase-business-whmcs
