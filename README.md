@@ -1,25 +1,64 @@
-## Coinbase Commerce module for WHMCS, version 1.2
-**Note: This repository is not actively maintained.**
+## Coinbase Business Payment Gateway for WHMCS
 
+Accept USDC payments on Base network through Coinbase Business Payment Links.
 
-### About Coinbase Commerce:
-- Coinbase Commerce is a new service that enables merchants to accept multiple cryptocurrencies directly into a user-controlled wallet.
-This module allows you to integrate Coinbase Commerce easily on your platform.
-Additional information can be found at:
-https://commerce.coinbase.com/
+### About
 
-### Requirements:
-- Working WHMCS installation (tested up to version 7.4.2).
-- Coinbase Commerce account, you can register for free at https://commerce.coinbase.com/signup
+This module integrates the [Coinbase Business Payment Link API](https://docs.cdp.coinbase.com/coinbase-business/payment-link-apis/overview) with WHMCS, allowing merchants to accept cryptocurrency payments directly to their Coinbase Business account.
 
-### Installation:
-- Clone current repository and run `composer install` or download build from [releases page](https://github.com/coinbase/coinbase-commerce-whmcs/releases) and unzip
-- Copy modules folder to the root folder of your WHMCS installation.
-- Activate the Coinbase Commerce module in your WHMCS admin panel (Setup -> Payments -> Payment Gateways -> All Payment Gateways).
-- Look for "Coinbase Commerce" button and click on.
-- Log into your Coinbase Commerce Dashboard and go to "Settings" section, copy the Api Key and Webhook Shared Secret from your account and paste them into the corresponding fields at the module's setup page on your WHMCS site.
-- Copy the "Webhook subscription url" from your Coinbase Commerce's module setup and paste it into the "Webhook Url" field at the "Notifications" section of your Coinbase Commerce dashboard, then save the changes.
-- Click on "Save Changes" in your WHMCS site.
+**Note:** This gateway accepts **USDC on Base network** only.
 
-### Integrate with other e-commerce platforms
-[Coinbase Commerce Integrations](https://commerce.coinbase.com/integrate)
+### Requirements
+
+- WHMCS installation
+- PHP 7.4+ with OpenSSL extension
+- Coinbase Business account with CDP API access
+
+### Installation
+
+1. Clone this repository and run `composer install`, or download the build from the [releases page](https://github.com/coinbase/coinbase-commerce-whmcs/releases)
+
+2. Copy the `modules` folder to the root of your WHMCS installation
+
+3. Activate the gateway in WHMCS admin:
+   - Go to **Setup > Payments > Payment Gateways > All Payment Gateways**
+   - Click **Coinbase Business**
+
+### Configuration
+
+#### 1. Create CDP API Key
+
+1. Log into the [Coinbase Developer Platform](https://portal.cdp.coinbase.com/)
+2. Navigate to **API Keys** and create a new key
+3. Copy the **Key Name** and **Private Key** (EC PEM format)
+
+#### 2. Set Up Webhook
+
+1. In the Coinbase Developer Platform, create a webhook subscription
+2. Set the endpoint URL to your WHMCS callback (shown in the gateway settings)
+3. Subscribe to Payment Link events
+4. Copy the **Webhook Secret** from the subscription
+
+#### 3. Configure WHMCS
+
+In the gateway settings, enter:
+
+| Field | Value |
+|-------|-------|
+| CDP API Key Name | Your API key name/identifier |
+| CDP Private Key | EC Private Key in PEM format |
+| Webhook Secret | Secret from webhook subscription |
+
+### How It Works
+
+1. Customer clicks "Pay Now" on an invoice
+2. A Payment Link is created via the Coinbase API
+3. Customer is redirected to the Coinbase payment page
+4. Customer pays with USDC on Base network
+5. Webhook notifies WHMCS when payment completes
+6. Invoice is automatically marked as paid
+
+### Support
+
+- [Payment Link API Documentation](https://docs.cdp.coinbase.com/coinbase-business/payment-link-apis/overview)
+- [Coinbase Developer Platform](https://portal.cdp.coinbase.com/)

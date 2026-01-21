@@ -1,3 +1,2 @@
 /modules/gateways/Coinbase/vendor/*
 /.idea/
-/composer.lock
