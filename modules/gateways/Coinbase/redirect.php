@@ -60,9 +60,10 @@ try {
 // Get client details
 $client = Capsule::table('tblclients')->where('id', $invoice->userid)->first();
 
-// Build return URL
+// Build return URL — points to our return page so users see a "payment processing"
+// message instead of the raw invoice (which still shows "Unpaid" until the webhook arrives)
 $systemUrl = Capsule::table('tblconfiguration')->where('setting', 'SystemURL')->value('value');
-$returnUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId;
+$returnUrl = $systemUrl . 'modules/gateways/Coinbase/return.php?id=' . $invoiceId;
 
 try {
     $paymentClient = new PaymentLinkClient(
