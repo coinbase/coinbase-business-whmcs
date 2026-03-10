@@ -103,10 +103,12 @@ class Webhook
                 break;
 
             case EVENT_PAYMENT_FAILED:
+                $this->revertPaymentPending($orderId);
                 $this->log(sprintf('Payment failed for invoice %s', $orderId), $payload);
                 break;
 
             case EVENT_PAYMENT_EXPIRED:
+                $this->revertPaymentPending($orderId);
                 $this->log(sprintf('Payment expired for invoice %s', $orderId), $payload);
                 break;
 
@@ -151,6 +153,20 @@ class Webhook
         );
 
         $this->log(sprintf('Payment successful for invoice %s. Transaction: %s, Amount: %s', $orderId, $transactionId, $amount), $payload);
+    }
+
+    /**
+     * Revert invoice from "Payment Pending" back to "Unpaid"
+     *
+     * Called when a payment fails or expires after the user was redirected
+     * back and the return handler set the status to "Payment Pending".
+     */
+    private function revertPaymentPending($invoiceId)
+    {
+        \Illuminate\Database\Capsule\Manager::table('tblinvoices')
+            ->where('id', $invoiceId)
+            ->where('status', 'Payment Pending')
+            ->update(['status' => 'Unpaid']);
     }
 
     /**
