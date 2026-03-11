@@ -174,7 +174,17 @@ class Webhook
      */
     private function getValidatedPayload()
     {
-        $webhookSecret = $this->getModuleParam('webhookSecret');
+        $isSandbox = $this->getModuleParam('sandboxMode') === 'on';
+        $webhookSecret = $isSandbox
+            ? $this->getModuleParam('sandboxWebhookSecret')
+            : $this->getModuleParam('webhookSecret');
+
+        if (empty($webhookSecret)) {
+            $this->failProcess($isSandbox
+                ? 'Webhook secret not configured (sandbox)'
+                : 'Webhook secret not configured');
+        }
+
         $headers = array_change_key_case(getallheaders());
         $signatureHeader = $headers[SIGNATURE_HEADER] ?? null;
         $rawPayload = trim(file_get_contents('php://input'));

@@ -8,6 +8,7 @@ defined('METADATA_SOURCE_VALUE') or define('METADATA_SOURCE_VALUE', 'whmcs');
 // Payment Link API configuration
 defined('PAYMENT_LINK_API_BASE') or define('PAYMENT_LINK_API_BASE', 'https://business.coinbase.com');
 defined('PAYMENT_LINK_API_PATH') or define('PAYMENT_LINK_API_PATH', '/api/v1/payment-links');
+defined('PAYMENT_LINK_API_PATH_SANDBOX') or define('PAYMENT_LINK_API_PATH_SANDBOX', '/sandbox/api/v1/payment-links');
 
 // JWT authentication
 defined('JWT_ISSUER') or define('JWT_ISSUER', 'cdp');

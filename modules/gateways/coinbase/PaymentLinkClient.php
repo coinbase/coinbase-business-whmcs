@@ -24,16 +24,23 @@ class PaymentLinkClient
     private $httpClient;
 
     /**
+     * @var string API path (production or sandbox)
+     */
+    private $apiPath;
+
+    /**
      * @param string $keyName CDP API key name
      * @param string $privateKey EC private key in PEM format
+     * @param string $apiPath API path (defaults to production)
      */
-    public function __construct(string $keyName, string $privateKey)
+    public function __construct(string $keyName, string $privateKey, string $apiPath = PAYMENT_LINK_API_PATH)
     {
         $this->jwtAuth = new CoinbaseJwtAuth($keyName, $privateKey);
         $this->httpClient = new Client([
             'base_uri' => PAYMENT_LINK_API_BASE,
             'timeout' => 30,
         ]);
+        $this->apiPath = $apiPath;
     }
 
     /**
@@ -50,7 +57,7 @@ class PaymentLinkClient
      */
     public function createPaymentLink(array $params): object
     {
-        $token = $this->jwtAuth->generateToken('POST', PAYMENT_LINK_API_PATH);
+        $token = $this->jwtAuth->generateToken('POST', $this->apiPath);
 
         $body = [
             'amount' => (string) $params['amount'],
@@ -67,7 +74,7 @@ class PaymentLinkClient
         }
 
         try {
-            $response = $this->httpClient->post(PAYMENT_LINK_API_PATH, [
+            $response = $this->httpClient->post($this->apiPath, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Content-Type' => 'application/json',
@@ -96,7 +103,7 @@ class PaymentLinkClient
      */
     public function getPaymentLink(string $id): object
     {
-        $path = PAYMENT_LINK_API_PATH . '/' . $id;
+        $path = $this->apiPath . '/' . $id;
         $token = $this->jwtAuth->generateToken('GET', $path);
 
         try {
