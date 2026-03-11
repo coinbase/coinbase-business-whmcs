@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/Coinbase/vendor/autoload.php';
-require_once __DIR__ . '/Coinbase/const.php';
-require_once __DIR__ . '/Coinbase/PaymentLinkClient.php';
+require_once __DIR__ . '/coinbase/vendor/autoload.php';
+require_once __DIR__ . '/coinbase/const.php';
+require_once __DIR__ . '/coinbase/PaymentLinkClient.php';
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -15,8 +15,7 @@ function coinbase_MetaData()
         'DisplayName' => 'Coinbase Business',
         'APIVersion' => '1.1',
         'DisableLocalCredtCardInput' => true,
-        'TokenisedStorage' => false,
-        'Description' => 'Accept cryptocurrency payments via Coinbase Commerce (USDC on Base network).',
+        'TokenisedStorage' => false
     );
 }
 
@@ -74,7 +73,7 @@ function coinbase_config()
             'Type' => '',
             'Size' => '',
             'Default' => '',
-            'Description' => '<p style="color:#0066cc;"><strong>Note:</strong> This gateway accepts <strong>USDC on Base network</strong> only. Invoice amounts will be charged in USDC.</p>'
+            'Description' => '<p style="color:#0066cc;"><strong>Note:</strong> This gateway accepts <strong>USDC</strong> payments. Invoice amounts will be charged in USDC.</p>'
         )
     );
 }
@@ -86,7 +85,7 @@ function coinbase_link($params)
     }
 
     // Build redirect URL - payment link is created only when user clicks the button
-    $redirectUrl = $params['systemurl'] . 'modules/gateways/Coinbase/redirect.php';
+    $redirectUrl = $params['systemurl'] . 'modules/gateways/coinbase/redirect.php';
 
     $form = '<form action="' . htmlspecialchars($redirectUrl) . '" method="POST">';
     $form .= '<input type="hidden" name="invoice_id" value="' . (int) $params['invoiceid'] . '" />';

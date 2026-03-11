@@ -62,7 +62,7 @@ $client = Capsule::table('tblclients')->where('id', $invoice->userid)->first();
 
 // Build return URLs
 $systemUrl = Capsule::table('tblconfiguration')->where('setting', 'SystemURL')->value('value');
-$successUrl = $systemUrl . 'modules/gateways/Coinbase/return.php?invoice_id=' . $invoiceId;
+$successUrl = $systemUrl . 'modules/gateways/coinbase/return.php?invoice_id=' . $invoiceId;
 $failUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId . '&paymentfailed=true';
 
 try {

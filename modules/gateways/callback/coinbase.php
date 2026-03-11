@@ -5,8 +5,8 @@
  * Processes Payment Link API webhook events for payment status updates.
  */
 
-require_once __DIR__ . '/../Coinbase/vendor/autoload.php';
-require_once __DIR__ . '/../Coinbase/const.php';
+require_once __DIR__ . '/../coinbase/vendor/autoload.php';
+require_once __DIR__ . '/../coinbase/const.php';
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
