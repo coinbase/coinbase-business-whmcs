@@ -46,16 +46,7 @@ if ($loggedInUserId !== (int) $invoice->userid) {
     die('Unauthorized access to invoice');
 }
 
-// Get invoice description from first line item
-$description = '';
-try {
-    $description = Capsule::table('tblinvoiceitems')
-        ->where('invoiceid', '=', $invoiceId)
-        ->value('description');
-    $description = (strlen($description) > 200) ? substr($description, 0, 197) . '...' : $description;
-} catch (Exception $e) {
-    $description = "Invoice #$invoiceId";
-}
+$description = "Invoice - $invoiceId";
 
 // Get client details
 $client = Capsule::table('tblclients')->where('id', $invoice->userid)->first();
@@ -73,7 +64,7 @@ try {
 
     $paymentLinkData = [
         'amount' => $invoice->total,
-        'description' => $description ?: "Invoice #$invoiceId",
+        'description' => $description,
         'metadata' => [
             METADATA_SOURCE_PARAM => METADATA_SOURCE_VALUE,
             METADATA_INVOICE_PARAM => (string) $invoiceId,
