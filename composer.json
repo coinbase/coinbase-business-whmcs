@@ -9,7 +9,7 @@
         "guzzlehttp/guzzle": "^7.0"
     },
     "config": {
-        "vendor-dir": "modules/gateways/Coinbase/vendor",
+        "vendor-dir": "modules/gateways/coinbase/vendor",
         "platform": {
             "php": "8.0.0"
         }

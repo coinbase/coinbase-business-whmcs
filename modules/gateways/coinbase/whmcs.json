@@ -1,0 +1,28 @@
+{
+    "schema": "1.0",
+    "type": "whmcs-gateways",
+    "name": "coinbase",
+    "license": "Apache-2.0",
+    "category": "payments",
+    "description": {
+        "name": "Coinbase Business",
+        "tagline": "Accept cryptocurrency payments via Coinbase Commerce.",
+        "long": "Coinbase Commerce payment gateway for WHMCS. Enables merchants to accept USDC payments through Coinbase Commerce, with automatic invoice reconciliation via webhooks.",
+        "features": [
+            "Accept USDC payments across multiple networks",
+            "Automatic invoice payment recording via webhooks",
+            "Secure webhook signature verification",
+            "Hosted payment page via Coinbase Commerce"
+        ]
+    },
+    "support": {
+        "homepage": "https://github.com/coinbase/coinbase-business-whmcs",
+        "docs_url": "https://github.com/coinbase/coinbase-business-whmcs#readme"
+    },
+    "authors": [
+        {
+            "name": "Coinbase",
+            "homepage": "https://www.coinbase.com"
+        }
+    ]
+}

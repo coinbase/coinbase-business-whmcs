@@ -60,9 +60,10 @@ try {
 // Get client details
 $client = Capsule::table('tblclients')->where('id', $invoice->userid)->first();
 
-// Build return URL
+// Build return URLs
 $systemUrl = Capsule::table('tblconfiguration')->where('setting', 'SystemURL')->value('value');
-$returnUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId;
+$successUrl = $systemUrl . 'modules/gateways/coinbase/return.php?invoice_id=' . $invoiceId;
+$failUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId . '&paymentfailed=true';
 
 try {
     $paymentClient = new PaymentLinkClient(
@@ -81,8 +82,8 @@ try {
             'lastName' => $client->lastname ?? null,
             'email' => $client->email ?? null,
         ],
-        'successUrl' => $returnUrl . '&paymentsuccess=true',
-        'failUrl' => $returnUrl . '&paymentfailed=true',
+        'successUrl' => $successUrl,
+        'failUrl' => $failUrl,
     ];
 
     $response = $paymentClient->createPaymentLink($paymentLinkData);

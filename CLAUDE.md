@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Coinbase Commerce payment gateway module for WHMCS. Allows merchants to accept cryptocurrency payments via Coinbase Commerce API. **Note: This repository is not actively maintained.**
+Coinbase Business payment gateway module for WHMCS. Accepts USDC payments on Base network via the Coinbase Payment Link API. **Note: This repository is not actively maintained.**
 
 ## Build Commands
 
@@ -17,38 +17,52 @@ composer install -n --prefer-dist
 
 There are no test or lint commands configured for this project.
 
+## GitHub CLI
+
+`gh` commands require the `GH_HOST` environment variable:
+
+```bash
+GH_HOST=github.com gh pr create ...
+```
+
 ## Architecture
 
 ### Payment Flow
 
-1. **Checkout** (`modules/gateways/coinbase.php`): `coinbase_link()` creates a Coinbase Commerce charge with invoice metadata and redirects customer to hosted payment page
-2. **Webhook** (`modules/gateways/callback/coinbase.php`): Receives POST notifications from Coinbase when payment status changes, validates signature, and updates WHMCS invoice
+1. **Invoice page** (`coinbase.php`): `coinbase_link()` renders a "Pay Now" form that POSTs to `redirect.php`
+2. **Redirect** (`Coinbase/redirect.php`): Creates a Payment Link via the Coinbase API and redirects the user to the Coinbase hosted payment page
+3. **Return** (`Coinbase/return.php`): Handles the redirect back from Coinbase after successful payment. Sets invoice status to "Payment Pending" so the user doesn't see "Unpaid" while the async webhook is in transit
+4. **Webhook** (`callback/coinbase.php`): Receives async POST notifications from Coinbase when payment status changes, validates the signature, and records the payment via `addInvoicePayment()`
 
 ### Key Components
 
-- **`modules/gateways/coinbase.php`** - Main gateway module with WHMCS integration (config UI, payment link generation)
-- **`modules/gateways/callback/coinbase.php`** - Webhook handler processing charge state changes (RESOLVED, COMPLETED, PENDING, UNRESOLVED, CANCELED, EXPIRED)
-- **`modules/gateways/Coinbase/const.php`** - Metadata field constants and webhook signature header name
+All files live under `modules/gateways/`:
+
+- **`coinbase.php`** — Main WHMCS gateway module (config UI, payment button generation). This is the only file that uses the `if (!defined("WHMCS"))` access guard
+- **`Coinbase/redirect.php`** — Standalone entry point (POST). Creates Payment Link and redirects to Coinbase
+- **`Coinbase/return.php`** — Standalone entry point (GET). Handles return redirect, sets "Payment Pending" status
+- **`callback/coinbase.php`** — Standalone entry point (POST). Webhook handler with `Webhook` class
+- **`Coinbase/PaymentLinkClient.php`** — HTTP client for the Payment Link API (create/get links via Guzzle)
+- **`Coinbase/JwtAuth.php`** — ES256 JWT token generation for CDP API authentication (uses `firebase/php-jwt`)
+- **`Coinbase/const.php`** — Constants: metadata field names, API paths, webhook event types, signature header
 
 ### WHMCS Conventions
 
-- All files must check `if (!defined("WHMCS"))` for access protection
-- Functions prefixed with gateway name: `coinbase_MetaData()`, `coinbase_config()`, `coinbase_link()`
-- Uses Illuminate Database Capsule ORM for database access
-- Invoice payments recorded via `addInvoicePayment()` helper
+- Gateway module functions are prefixed with the gateway name: `coinbase_MetaData()`, `coinbase_config()`, `coinbase_link()`
+- Uses Illuminate Database Capsule ORM (`Capsule::table(...)`) for all database access
+- Invoice payments recorded via `addInvoicePayment()` helper; invoice validation via `checkCbInvoiceID()` and `checkCbTransID()`
 
 ### Webhook Security
 
-Webhook validation requires:
-1. Signature verification via `x-cc-webhook-signature` header
-2. Metadata source check (`source === 'whmcs'`)
-3. Invoice ownership verification (user ID matching)
+The webhook handler (`callback/coinbase.php`) validates:
+1. **Signature** — HMAC-SHA256 via `x-hook0-signature` header (format: `t=timestamp,v0=signature,...`)
+2. **Replay protection** — Timestamp must be within 5 minutes
+3. **Source check** — Metadata `source` field must equal `whmcs`
+4. **Ownership** — Invoice must belong to the user ID in metadata
 
-## CI/CD
+### Webhook Event Types
 
-CircleCI builds on master branch only:
-1. Installs composer dependencies
-2. Creates zip of `modules/` directory
-3. Uploads to GitHub releases
-
-Version is tracked in `.circleci/params.ini`.
+Defined in `const.php`, handled in the `Webhook::process()` switch:
+- `payment_link.payment.success` — Records payment via `addInvoicePayment()`
+- `payment_link.payment.failed` — Reverts "Payment Pending" to "Unpaid", logs failure
+- `payment_link.payment.expired` — Reverts "Payment Pending" to "Unpaid", logs expiry

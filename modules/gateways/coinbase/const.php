@@ -21,7 +21,7 @@ defined('EVENT_PAYMENT_SUCCESS') or define('EVENT_PAYMENT_SUCCESS', 'payment_lin
 defined('EVENT_PAYMENT_FAILED') or define('EVENT_PAYMENT_FAILED', 'payment_link.payment.failed');
 defined('EVENT_PAYMENT_EXPIRED') or define('EVENT_PAYMENT_EXPIRED', 'payment_link.payment.expired');
 
-// Fixed currency and network (Payment Link API only supports USDC on Base)
+// Fixed currency and network
 defined('PAYMENT_CURRENCY') or define('PAYMENT_CURRENCY', 'USDC');
 defined('PAYMENT_NETWORK') or define('PAYMENT_NETWORK', 'base');
 
