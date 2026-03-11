@@ -33,6 +33,11 @@ if (!$gatewayParams['type']) {
     die('Coinbase gateway is not activated');
 }
 
+// Determine API path based on sandbox mode
+$apiPath = (!empty($gatewayParams['sandboxMode']) && $gatewayParams['sandboxMode'] === 'on')
+    ? PAYMENT_LINK_API_PATH_SANDBOX
+    : PAYMENT_LINK_API_PATH;
+
 // Get invoice details
 $invoice = Capsule::table('tblinvoices')->where('id', $invoiceId)->first();
 if (!$invoice) {
@@ -59,7 +64,8 @@ $failUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId . '&paymentfailed=tru
 try {
     $paymentClient = new PaymentLinkClient(
         $gatewayParams['cdpKeyName'],
-        $gatewayParams['cdpPrivateKey']
+        $gatewayParams['cdpPrivateKey'],
+        $apiPath
     );
 
     $paymentLinkData = [

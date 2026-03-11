@@ -56,9 +56,19 @@ function coinbase_config()
             'Type' => 'textarea',
             'Rows' => '5'
         ),
+        'sandboxMode' => array(
+            'FriendlyName' => 'Sandbox Mode',
+            'Description' => 'Enable sandbox mode for testing with Base Sepolia testnet. Do not enable in production or toggle while payments are pending.',
+            'Type' => 'yesno'
+        ),
         'webhookSecret' => array(
             'FriendlyName' => 'Webhook Secret',
             'Description' => 'Secret from your webhook subscription for signature verification',
+            'Type' => 'password'
+        ),
+        'sandboxWebhookSecret' => array(
+            'FriendlyName' => 'Sandbox Webhook Secret',
+            'Description' => 'Secret from your sandbox webhook subscription. Only used when sandbox mode is enabled.',
             'Type' => 'password'
         ),
         'webhookUrl' => array(
