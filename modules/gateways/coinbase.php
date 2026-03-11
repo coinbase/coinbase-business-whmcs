@@ -15,7 +15,8 @@ function coinbase_MetaData()
         'DisplayName' => 'Coinbase Business',
         'APIVersion' => '1.1',
         'DisableLocalCredtCardInput' => true,
-        'TokenisedStorage' => false
+        'TokenisedStorage' => false,
+        'Description' => 'Accept cryptocurrency payments via Coinbase Commerce (USDC on Base network).',
     );
 }
 
