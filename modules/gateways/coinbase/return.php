@@ -30,13 +30,12 @@ if ($loggedInUserId !== (int) $invoice->userid) {
     die('Unauthorized access to invoice');
 }
 
-// If the invoice is still "Unpaid", mark it as "Payment Pending"
-// Skip if already "Paid" (webhook arrived before the redirect)
-if ($invoice->status === 'Unpaid') {
-    Capsule::table('tblinvoices')
-        ->where('id', $invoiceId)
-        ->update(['status' => 'Payment Pending']);
-}
+// Atomically mark "Unpaid" → "Payment Pending" (WHERE guard prevents
+// overwriting a "Paid" status if the webhook arrived first)
+Capsule::table('tblinvoices')
+    ->where('id', $invoiceId)
+    ->where('status', 'Unpaid')
+    ->update(['status' => 'Payment Pending']);
 
 // Build redirect URL to the invoice view page
 $systemUrl = Capsule::table('tblconfiguration')->where('setting', 'SystemURL')->value('value');
