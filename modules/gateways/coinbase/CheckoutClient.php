@@ -1,8 +1,8 @@
 <?php
 /**
- * Coinbase Payment Link API Client
+ * Coinbase Checkout API Client
  *
- * Handles creation and retrieval of payment links via the CDP Business API.
+ * Handles creation and retrieval of checkouts via the CDP Business API.
  */
 
 require_once __DIR__ . '/const.php';
@@ -11,7 +11,7 @@ require_once __DIR__ . '/JwtAuth.php';
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-class PaymentLinkClient
+class CheckoutClient
 {
     /**
      * @var CoinbaseJwtAuth JWT authentication handler
@@ -33,18 +33,18 @@ class PaymentLinkClient
      * @param string $privateKey EC private key in PEM format
      * @param string $apiPath API path (defaults to production)
      */
-    public function __construct(string $keyName, string $privateKey, string $apiPath = PAYMENT_LINK_API_PATH)
+    public function __construct(string $keyName, string $privateKey, string $apiPath = CHECKOUT_API_PATH)
     {
         $this->jwtAuth = new CoinbaseJwtAuth($keyName, $privateKey);
         $this->httpClient = new Client([
-            'base_uri' => PAYMENT_LINK_API_BASE,
+            'base_uri' => CHECKOUT_API_BASE,
             'timeout' => 30,
         ]);
         $this->apiPath = $apiPath;
     }
 
     /**
-     * Create a new payment link
+     * Create a new checkout
      *
      * @param array $params Payment parameters:
      *   - amount: Payment amount (string)
@@ -55,7 +55,7 @@ class PaymentLinkClient
      * @return object Response containing 'url' and 'id'
      * @throws Exception On API error
      */
-    public function createPaymentLink(array $params): object
+    public function createCheckout(array $params): object
     {
         $token = $this->jwtAuth->generateToken('POST', $this->apiPath);
 
@@ -90,18 +90,18 @@ class PaymentLinkClient
             return $result;
 
         } catch (GuzzleException $e) {
-            throw new Exception('Failed to create payment link: ' . $e->getMessage());
+            throw new Exception('Failed to create checkout: ' . $e->getMessage());
         }
     }
 
     /**
-     * Retrieve payment link details
+     * Retrieve checkout details
      *
-     * @param string $id Payment link ID
-     * @return object Payment link details including status
+     * @param string $id Checkout ID
+     * @return object Checkout details including status
      * @throws Exception On API error
      */
-    public function getPaymentLink(string $id): object
+    public function getCheckout(string $id): object
     {
         $path = $this->apiPath . '/' . $id;
         $token = $this->jwtAuth->generateToken('GET', $path);
@@ -121,7 +121,7 @@ class PaymentLinkClient
             return $result;
 
         } catch (GuzzleException $e) {
-            throw new Exception('Failed to retrieve payment link: ' . $e->getMessage());
+            throw new Exception('Failed to retrieve checkout: ' . $e->getMessage());
         }
     }
 }

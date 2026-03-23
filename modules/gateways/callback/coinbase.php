@@ -2,7 +2,7 @@
 /**
  * Coinbase Business Webhook Handler
  *
- * Processes Payment Link API webhook events for payment status updates.
+ * Processes Checkout API webhook events for payment status updates.
  */
 
 require_once __DIR__ . '/../coinbase/vendor/autoload.php';
@@ -127,8 +127,7 @@ class Webhook
     private function handlePaymentSuccess($orderId, $payload)
     {
         // Extract transaction details from payload
-        $paymentUrl = $payload->url ?? '';
-        $transactionId = basename($paymentUrl);
+        $transactionId = $payload->transactionHash ?? $payload->id ?? null;
         $settlement = $payload->settlement ?? new stdClass();
 
         // Use totalAmount (gross) with feeAmount so WHMCS correctly records net payment
@@ -193,7 +192,7 @@ class Webhook
             $this->failProcess('Missing signature header');
         }
 
-        if (!$this->verifySignature($rawPayload, $signatureHeader, $webhookSecret)) {
+        if (!$this->verifySignature($rawPayload, $signatureHeader, $webhookSecret, $headers)) {
             $this->failProcess('Invalid webhook signature');
         }
 
@@ -206,20 +205,21 @@ class Webhook
     }
 
     /**
-     * Verify X-Hook0-Signature header
+     * Verify X-Hook0-Signature header (v1 format)
      *
-     * Format: t=timestamp,v0=signature,h=headers,v1=signature_with_headers
-     * v0 = HMAC-SHA256(timestamp.payload)
-     * v1 = HMAC-SHA256(timestamp.headers.payload)
+     * Format: t=timestamp,h=header1 header2,v1=signature
+     * v1 = HMAC-SHA256(timestamp.headerNames.headerValues.payload)
+     * where headerValues = dot-separated values of the headers listed in h=
      *
      * @param string $payload Raw request body
      * @param string $signatureHeader Header value
      * @param string $secret Webhook subscription secret
+     * @param array $requestHeaders All request headers (lowercase keys)
      * @return bool True if signature is valid
      */
-    private function verifySignature(string $payload, string $signatureHeader, string $secret): bool
+    private function verifySignature(string $payload, string $signatureHeader, string $secret, array $requestHeaders): bool
     {
-        // Parse the signature header (format: t=timestamp,v0=sig,h=headers,v1=sig)
+        // Parse the signature header (format: t=timestamp,h=header1 header2,v1=sig)
         $parts = [];
         foreach (explode(',', $signatureHeader) as $part) {
             $split = explode('=', $part, 2);
@@ -229,9 +229,10 @@ class Webhook
         }
 
         $timestamp = $parts['t'] ?? null;
-        $signature = $parts['v0'] ?? null;
+        $headerNames = $parts['h'] ?? null;
+        $signature = $parts['v1'] ?? null;
 
-        if (!$timestamp || !$signature) {
+        if (!$timestamp || !$headerNames || !$signature) {
             return false;
         }
 
@@ -241,8 +242,16 @@ class Webhook
             return false;
         }
 
-        // Build the signed payload: timestamp.payload
-        $signedPayload = $timestamp . '.' . $payload;
+        // Look up header values from the request
+        $headerNameList = explode(' ', $headerNames);
+        $headerValueList = [];
+        foreach ($headerNameList as $name) {
+            $headerValueList[] = $requestHeaders[strtolower($name)] ?? '';
+        }
+        $headerValues = implode('.', $headerValueList);
+
+        // Build the signed payload: timestamp.headerNames.headerValues.payload
+        $signedPayload = $timestamp . '.' . $headerNames . '.' . $headerValues . '.' . $payload;
 
         // Calculate expected signature using HMAC-SHA256
         $expectedSignature = hash_hmac('sha256', $signedPayload, $secret);
