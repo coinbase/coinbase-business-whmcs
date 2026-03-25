@@ -1,6 +1,6 @@
 {
     "name": "coinbase/coinbase-commerce-whmcs",
-    "description": "Coinbase Business Payment Link plugin for WHMCS",
+    "description": "Coinbase Business Checkout plugin for WHMCS",
     "type": "composer-plugin",
     "license": "Apache-2.0",
     "require": {
