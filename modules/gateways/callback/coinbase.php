@@ -2,7 +2,7 @@
 /**
  * Coinbase Business Webhook Handler
  *
- * Processes Payment Link API webhook events for payment status updates.
+ * Processes Checkout API webhook events for payment status updates.
  */
 
 require_once __DIR__ . '/../coinbase/vendor/autoload.php';
