@@ -55,7 +55,7 @@ All files live under `modules/gateways/`:
 ### Webhook Security
 
 The webhook handler (`callback/coinbase.php`) validates:
-1. **Signature** — HMAC-SHA256 via `x-hook0-signature` header (format: `t=timestamp,h=headers,v1=signature`)
+1. **Signature** — HMAC-SHA256 via `x-hook0-signature` header (format: `t=timestamp,v0=signature`)
 2. **Replay protection** — Timestamp must be within 5 minutes
 3. **Source check** — Metadata `source` field must equal `whmcs`
 4. **Ownership** — Invoice must belong to the user ID in metadata
