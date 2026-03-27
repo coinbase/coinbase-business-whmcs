@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/coinbase/vendor/autoload.php';
 require_once __DIR__ . '/coinbase/const.php';
-require_once __DIR__ . '/coinbase/PaymentLinkClient.php';
+require_once __DIR__ . '/coinbase/CheckoutClient.php';
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
@@ -94,7 +94,7 @@ function coinbase_link($params)
         die('Missing or invalid $params data.');
     }
 
-    // Build redirect URL - payment link is created only when user clicks the button
+    // Build redirect URL - checkout is created only when user clicks the button
     $redirectUrl = $params['systemurl'] . 'modules/gateways/coinbase/redirect.php';
 
     $form = '<form action="' . htmlspecialchars($redirectUrl) . '" method="POST">';

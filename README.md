@@ -1,10 +1,10 @@
 ## Coinbase Business Payment Gateway for WHMCS
 
-Accept USDC payments on Base network through Coinbase Business Payment Links.
+Accept USDC payments on Base network through Coinbase Business Checkouts.
 
 ### About
 
-This module integrates the [Coinbase Business Payment Link API](https://docs.cdp.coinbase.com/coinbase-business/payment-link-apis/overview) with WHMCS, allowing merchants to accept cryptocurrency payments directly to their Coinbase Business account.
+This module integrates the [Coinbase Business Checkout API](https://docs.cdp.coinbase.com/coinbase-business/checkout-apis/overview) with WHMCS, allowing merchants to accept cryptocurrency payments directly to their Coinbase Business account.
 
 **Note:** This gateway accepts **USDC on Base network** only.
 
@@ -36,7 +36,7 @@ This module integrates the [Coinbase Business Payment Link API](https://docs.cdp
 
 1. In the Coinbase Developer Platform, create a webhook subscription
 2. Set the endpoint URL to your WHMCS callback (shown in the gateway settings)
-3. Subscribe to Payment Link events
+3. Subscribe to Checkout events
 4. Copy the **Webhook Secret** from the subscription
 
 #### 3. Configure WHMCS
@@ -52,7 +52,7 @@ In the gateway settings, enter:
 ### How It Works
 
 1. Customer clicks "Pay Now" on an invoice
-2. A Payment Link is created via the Coinbase API
+2. A Checkout is created via the Coinbase API
 3. Customer is redirected to the Coinbase payment page
 4. Customer pays with USDC on Base network
 5. Webhook notifies WHMCS when payment completes
@@ -60,5 +60,5 @@ In the gateway settings, enter:
 
 ### Support
 
-- [Payment Link API Documentation](https://docs.cdp.coinbase.com/coinbase-business/payment-link-apis/overview)
+- [Checkout API Documentation](https://docs.cdp.coinbase.com/coinbase-business/checkout-apis/overview)
 - [Coinbase Developer Platform](https://portal.cdp.coinbase.com/)

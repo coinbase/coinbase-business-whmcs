@@ -1,13 +1,13 @@
 <?php
 /**
- * Coinbase Payment Link Redirect Handler
+ * Coinbase Checkout Redirect Handler
  *
- * Creates a payment link only when the user clicks "Pay Now" and redirects to Coinbase.
+ * Creates a checkout only when the user clicks "Pay Now" and redirects to Coinbase.
  */
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/const.php';
-require_once __DIR__ . '/PaymentLinkClient.php';
+require_once __DIR__ . '/CheckoutClient.php';
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
@@ -35,8 +35,8 @@ if (!$gatewayParams['type']) {
 
 // Determine API path based on sandbox mode
 $apiPath = (!empty($gatewayParams['sandboxMode']) && $gatewayParams['sandboxMode'] === 'on')
-    ? PAYMENT_LINK_API_PATH_SANDBOX
-    : PAYMENT_LINK_API_PATH;
+    ? CHECKOUT_API_PATH_SANDBOX
+    : CHECKOUT_API_PATH;
 
 // Get invoice details
 $invoice = Capsule::table('tblinvoices')->where('id', $invoiceId)->first();
@@ -62,13 +62,13 @@ $successUrl = $systemUrl . 'modules/gateways/coinbase/return.php?invoice_id=' . 
 $failUrl = $systemUrl . 'viewinvoice.php?id=' . $invoiceId . '&paymentfailed=true';
 
 try {
-    $paymentClient = new PaymentLinkClient(
+    $checkoutClient = new CheckoutClient(
         $gatewayParams['cdpKeyName'],
         $gatewayParams['cdpPrivateKey'],
         $apiPath
     );
 
-    $paymentLinkData = [
+    $checkoutData = [
         'amount' => $invoice->total,
         'description' => $description,
         'metadata' => [
@@ -83,13 +83,13 @@ try {
         'failUrl' => $failUrl,
     ];
 
-    $response = $paymentClient->createPaymentLink($paymentLinkData);
+    $response = $checkoutClient->createCheckout($checkoutData);
 
     // Redirect to Coinbase payment page
     header('Location: ' . $response->url);
     exit;
 
 } catch (Exception $e) {
-    logTransaction($gatewayModuleName, ['error' => $e->getMessage()], 'Payment Link Creation Failed');
+    logTransaction($gatewayModuleName, ['error' => $e->getMessage()], 'Checkout Creation Failed');
     die('Unable to process payment. Please try again or contact support.');
 }

@@ -5,10 +5,10 @@ defined('METADATA_INVOICE_PARAM') or define('METADATA_INVOICE_PARAM', 'invoiceid
 defined('METADATA_SOURCE_PARAM') or define('METADATA_SOURCE_PARAM', 'source');
 defined('METADATA_SOURCE_VALUE') or define('METADATA_SOURCE_VALUE', 'whmcs');
 
-// Payment Link API configuration
-defined('PAYMENT_LINK_API_BASE') or define('PAYMENT_LINK_API_BASE', 'https://business.coinbase.com');
-defined('PAYMENT_LINK_API_PATH') or define('PAYMENT_LINK_API_PATH', '/api/v1/payment-links');
-defined('PAYMENT_LINK_API_PATH_SANDBOX') or define('PAYMENT_LINK_API_PATH_SANDBOX', '/sandbox/api/v1/payment-links');
+// Checkout API configuration
+defined('CHECKOUT_API_BASE') or define('CHECKOUT_API_BASE', 'https://business.coinbase.com');
+defined('CHECKOUT_API_PATH') or define('CHECKOUT_API_PATH', '/api/v1/checkouts');
+defined('CHECKOUT_API_PATH_SANDBOX') or define('CHECKOUT_API_PATH_SANDBOX', '/sandbox/api/v1/checkouts');
 
 // JWT authentication
 defined('JWT_ISSUER') or define('JWT_ISSUER', 'cdp');
@@ -18,9 +18,9 @@ defined('JWT_EXPIRY_SECONDS') or define('JWT_EXPIRY_SECONDS', 120);
 defined('SIGNATURE_HEADER') or define('SIGNATURE_HEADER', 'x-hook0-signature');
 
 // Webhook event types
-defined('EVENT_PAYMENT_SUCCESS') or define('EVENT_PAYMENT_SUCCESS', 'payment_link.payment.success');
-defined('EVENT_PAYMENT_FAILED') or define('EVENT_PAYMENT_FAILED', 'payment_link.payment.failed');
-defined('EVENT_PAYMENT_EXPIRED') or define('EVENT_PAYMENT_EXPIRED', 'payment_link.payment.expired');
+defined('EVENT_PAYMENT_SUCCESS') or define('EVENT_PAYMENT_SUCCESS', 'checkout.payment.success');
+defined('EVENT_PAYMENT_FAILED') or define('EVENT_PAYMENT_FAILED', 'checkout.payment.failed');
+defined('EVENT_PAYMENT_EXPIRED') or define('EVENT_PAYMENT_EXPIRED', 'checkout.payment.expired');
 
 // Fixed currency and network
 defined('PAYMENT_CURRENCY') or define('PAYMENT_CURRENCY', 'USDC');
