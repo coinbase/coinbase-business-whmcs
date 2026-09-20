@@ -85,6 +85,26 @@ try {
 
     $response = $checkoutClient->createCheckout($checkoutData);
 
+    // Record the checkout URL on the invoice so the webhook handler can bind an
+    // incoming payment event to the checkout that was actually created for this
+    // invoice (cross-invoice replay protection). The column
+    // `coinbase_checkout_url` is expected on tblinvoices; the update is skipped
+    // silently if it is absent to stay backward compatible with installations
+    // that have not run the schema migration yet.
+    if (!empty($response->url)) {
+        try {
+            Capsule::table('tblinvoices')
+                ->where('id', $invoiceId)
+                ->update(['coinbase_checkout_url' => (string) $response->url]);
+        } catch (Exception $e) {
+            logTransaction(
+                $gatewayModuleName,
+                ['error' => $e->getMessage()],
+                'Could not persist checkout URL for invoice ' . $invoiceId
+            );
+        }
+    }
+
     // Redirect to Coinbase payment page
     header('Location: ' . $response->url);
     exit;
