@@ -38,7 +38,19 @@ class CheckoutClient
         $this->jwtAuth = new CoinbaseJwtAuth($keyName, $privateKey);
         $this->httpClient = new Client([
             'base_uri' => CHECKOUT_API_BASE,
+            // Total ceiling for a single API call; short enough to fail fast on a
+            // hung connection instead of blocking a PHP-FPM worker indefinitely.
             'timeout' => 30,
+            // Separate ceiling for the TCP/TLS handshake so a black-holed host is
+            // detected quickly rather than consuming the full request timeout.
+            'connect_timeout' => 10,
+            // TLS peer verification stays enabled (Guzzle default). Never disable
+            // this: the requests carry Bearer JWTs, so a MITM could otherwise
+            // capture credentials usable against the Checkout API.
+            'verify' => true,
+            // Do not follow redirects: a redirect would re-send the Authorization
+            // header to a different host and leak the Bearer token.
+            'allow_redirects' => false,
         ]);
         $this->apiPath = $apiPath;
     }
@@ -90,7 +102,9 @@ class CheckoutClient
             return $result;
 
         } catch (GuzzleException $e) {
-            throw new Exception('Failed to create checkout: ' . $e->getMessage());
+            // The raw Guzzle message can embed the request line; surface only a
+            // sanitized reason so an Authorization header never reaches logs.
+            throw new Exception('Failed to create checkout (HTTP transport error): ' . $e->getCode());
         }
     }
 
@@ -121,7 +135,9 @@ class CheckoutClient
             return $result;
 
         } catch (GuzzleException $e) {
-            throw new Exception('Failed to retrieve checkout: ' . $e->getMessage());
+            // See createCheckout(): keep the raw transport message out of logs so
+            // the Bearer token in the request headers cannot be leaked.
+            throw new Exception('Failed to retrieve checkout (HTTP transport error): ' . $e->getCode());
         }
     }
 }
