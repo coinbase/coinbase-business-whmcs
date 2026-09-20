@@ -75,8 +75,12 @@ class Webhook
 
         $payload = $this->getValidatedPayload();
 
-        // Extract event data
+        // Extract event data. A missing event type is a malformed event: reject it
+        // explicitly instead of falling into the default switch branch with null.
         $eventType = $payload->eventType ?? null;
+        if (!is_string($eventType) || $eventType === '') {
+            $this->failProcess('Missing or invalid event type in payload');
+        }
         $metadata = $payload->metadata ?? new stdClass();
 
         // Validate metadata source
@@ -136,8 +140,25 @@ class Webhook
         $amount = $settlement->totalAmount ?? $payload->amount ?? '0';
         $fee = $settlement->feeAmount ?? '0';
 
+        // A transaction ID is required for idempotency (checkCbTransID). Failing
+        // closed here prevents the same success event from being credited twice.
         if (!$transactionId) {
             $this->failProcess('No transaction ID found in payload');
+        }
+
+        // Binding check: the settlement amounts and the transaction/checkout ID in
+        // this payload must belong to the checkout that was created for this exact
+        // invoice. The checkout ID embedded in our own success redirect URL is
+        // recorded at checkout creation time, so we can cross-check it here.
+        // Without this, a validly signed event for checkout A could be replayed
+        // against the invoice of checkout B.
+        $expectedCheckoutId = $this->getCheckoutIdForInvoice($orderId);
+        if ($expectedCheckoutId !== null && !hash_equals($expectedCheckoutId, $transactionId)) {
+            $this->failProcess(sprintf(
+                'Transaction ID "%s" does not match the checkout recorded for invoice %s',
+                $transactionId,
+                $orderId
+            ));
         }
 
         // Check for duplicate transaction
@@ -153,6 +174,30 @@ class Webhook
         );
 
         $this->log(sprintf('Payment successful for invoice %s. Transaction: %s, Amount: %s', $orderId, $transactionId, $amount), $payload);
+    }
+
+    /**
+     * Look up the checkout ID recorded when the checkout was created for an
+     * invoice. Returns null when no checkout URL has been stored yet (e.g. the
+     * payment was initiated through a flow that did not persist one), in which
+     * case the caller must skip the binding check rather than fail closed on
+     * legitimate historical payments.
+     *
+     * @param int|string $invoiceId WHMCS invoice ID
+     * @return string|null Checkout ID, or null if none was recorded
+     */
+    private function getCheckoutIdForInvoice($invoiceId)
+    {
+        $checkoutUrl = \Illuminate\Database\Capsule\Manager::table('tblinvoices')
+            ->where('id', $invoiceId)
+            ->value('coinbase_checkout_url');
+
+        if (!is_string($checkoutUrl) || $checkoutUrl === '') {
+            return null;
+        }
+
+        $checkoutId = basename($checkoutUrl);
+        return $checkoutId !== '' ? $checkoutId : null;
     }
 
     /**
