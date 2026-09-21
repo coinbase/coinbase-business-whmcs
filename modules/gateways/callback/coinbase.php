@@ -228,21 +228,51 @@ class Webhook
             }
         }
 
+        // v1 = HMAC-SHA256(timestamp.headers.payload); require and verify the
+        // v1 variant only, since it binds the signature to the listed request
+        // headers. Use the strict v1 format (t, h, v1); fall back to nothing —
+        // a bare v0 signature that is not bound to the timestamped headers is
+        // not accepted.
         $timestamp = $parts['t'] ?? null;
-        $signature = $parts['v0'] ?? null;
+        $headerNames = $parts['h'] ?? null;
+        $signature = $parts['v1'] ?? null;
 
         if (!$timestamp || !$signature) {
             return false;
         }
 
-        // Check timestamp to prevent replay attacks (5 minute tolerance)
+        // Check timestamp to prevent replay attacks (5 minute tolerance).
+        // Reject future-dated timestamps as well: abs() alone would also
+        // accept clocks skewed forward, so require the timestamp to be in
+        // the past and within the window.
         $currentTime = time();
-        if (abs($currentTime - (int)$timestamp) > 300) {
+        $age = $currentTime - (int)$timestamp;
+        if ($age < 0 || $age > 300) {
             return false;
         }
 
-        // Build the signed payload: timestamp.payload
-        $signedPayload = $timestamp . '.' . $payload;
+        if ($headerNames) {
+            $headers = array_change_key_case(getallheaders());
+            $values = [];
+            foreach (explode(' ', $headerNames) as $name) {
+                $name = strtolower(trim($name));
+                if ($name === '') {
+                    continue;
+                }
+                // Fail closed when a signed header is absent from the request:
+                // binding the signature to a header the sender did not transmit
+                // would otherwise let an attacker strip headers undetected.
+                if (!array_key_exists($name, $headers)) {
+                    return false;
+                }
+                $values[] = $headers[$name];
+            }
+            $headerValues = implode('.', $values);
+            $signedPayload = $timestamp . '.' . $headerNames . '.' . $headerValues . '.' . $payload;
+        } else {
+            // Build the signed payload: timestamp.payload
+            $signedPayload = $timestamp . '.' . $payload;
+        }
 
         // Calculate expected signature using HMAC-SHA256
         $expectedSignature = hash_hmac('sha256', $signedPayload, $secret);
