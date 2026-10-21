@@ -3,7 +3,7 @@
         'name' => 'coinbase/coinbase-commerce-whmcs',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '22e45dc68d86c7ca82db05adbaa3596211b1b1ed',
+        'reference' => '323d372e405e0d03c500eac9a8e387eb33e79f47',
         'type' => 'composer-plugin',
         'install_path' => __DIR__ . '/../../../../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'coinbase/coinbase-commerce-whmcs' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '22e45dc68d86c7ca82db05adbaa3596211b1b1ed',
+            'reference' => '323d372e405e0d03c500eac9a8e387eb33e79f47',
             'type' => 'composer-plugin',
             'install_path' => __DIR__ . '/../../../../../',
             'aliases' => array(),

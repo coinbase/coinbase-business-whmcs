@@ -10,9 +10,24 @@ This module integrates the [Coinbase Business Checkout API](https://docs.cdp.coi
 
 ### Requirements
 
-- WHMCS installation
-- PHP 7.4+ with OpenSSL extension
+- A WHMCS installation compatible with PHP 8.2 or 8.3; check the requirements for your [WHMCS version](https://docs.whmcs.com/9-0/installation-guide/system-requirements/)
+- PHP **8.2.35 or later in the 8.2 branch**, or **8.3.36 or later in the 8.3 branch**, with the OpenSSL extension
+- A matching ionCube Loader: **13.0.2+ for PHP 8.2** or **14.4.0+ for PHP 8.3**
 - Coinbase Business account with CDP API access
+
+### PHP Security Update — October 21, 2026
+
+PHP 8.2.35 and 8.3.36 include the fixes for **CVE-2026-109618** and **CVE-2026-109619**. Follow the [PHP security advisory](https://www.php.net/archive/2026.php#2026-10-21-5) and your hosting provider's instructions to update the PHP runtime serving WHMCS. Installing this module or updating Composer dependencies does not update PHP itself.
+
+Before installing or updating the module:
+
+1. Confirm that your WHMCS version, ionCube Loader, and other modules support the PHP branch you plan to use. Follow the [WHMCS PHP upgrade procedure](https://docs.whmcs.com/9-0/system/php/php-upgrades/).
+2. Upgrade the merchant-managed PHP packages or image to a fixed release in a supported branch, then restart all PHP workers serving WHMCS, including its payment and webhook endpoints. Check the PHP runtime used by the WHMCS cron separately.
+3. Verify the actual web runtime in **Utilities > System > PHP Info** in WHMCS. A local `php -v` checks the CLI executable only and may report a different version from the web server. After the restart, confirm that the web runtime is PHP 8.2.35+ in the 8.2 branch or 8.3.36+ in the 8.3 branch, and that the cron uses a compatible, patched runtime.
+
+The Composer `config.platform.php` value of `8.2.35` is a dependency-resolution baseline, not an installed interpreter. From the repository root, `composer check-platform-reqs --lock --no-dev` checks the actual CLI PHP against the full requirements, ignoring that simulated platform. For release ZIP or folder-copy installations, verify the web runtime directly: the bundled Composer autoloader checks only the lowest PHP version and does not validate every branch's security patch level.
+
+Some hosting vendors backport security fixes without changing the upstream PHP version number. Obtain confirmation that both CVEs are fixed from your provider; the version number alone cannot establish that. This module's Composer requirements use the upstream fixed PHP 8.2/8.3 version ranges, so older vendor-backported versions outside those ranges do not satisfy its installation requirements.
 
 ### Installation
 
