@@ -4,14 +4,14 @@
     "type": "composer-plugin",
     "license": "Apache-2.0",
     "require": {
-        "php": ">=8.0",
+        "php": "~8.2.35 || ~8.3.36",
         "firebase/php-jwt": "^7.0",
         "guzzlehttp/guzzle": "^7.0"
     },
     "config": {
         "vendor-dir": "modules/gateways/coinbase/vendor",
         "platform": {
-            "php": "8.0.0"
+            "php": "8.2.35"
         }
     }
 }
